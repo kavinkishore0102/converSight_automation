@@ -2,6 +2,9 @@ import { NextResponse } from "next/server";
 import { getSession } from "@/lib/auth";
 import { getAutomation, getRequest, updateRequest } from "@/lib/db";
 import { buildDetails, executeAutomation } from "@/lib/automation-engine";
+import { createLogger } from "@/lib/logger";
+
+const log = createLogger("api.requests.execute");
 
 export async function POST(_: Request, { params }: { params: { id: string } }) {
   const session = await getSession();
@@ -20,20 +23,39 @@ export async function POST(_: Request, { params }: { params: { id: string } }) {
     );
   }
 
+  log.info("execute.invoked", {
+    requestId: request.id,
+    automation: automation.name,
+    backendCategory: automation.backendCategory,
+    adminEmail: session.email,
+    previousStatus: request.status,
+  });
+
   updateRequest(params.id, { status: "In Progress" });
 
   try {
     const details = buildDetails(automation, request.data);
-    const result = await executeAutomation(automation.backendCategory, details);
+    const result = await executeAutomation(automation.backendCategory, details, {
+      requestId: request.id,
+      triggeredBy: session.email,
+    });
     const updated = updateRequest(params.id, {
       status: "Completed",
       result: JSON.stringify(result, null, 2),
+    });
+    log.info("execute.completed", {
+      requestId: request.id,
+      resultStatus: (result as any)?.status,
     });
     return NextResponse.json({ request: updated, result });
   } catch (err: any) {
     const updated = updateRequest(params.id, {
       status: "Rejected",
       adminNote: err.message,
+    });
+    log.error("execute.failed", {
+      requestId: request.id,
+      error: err.message,
     });
     return NextResponse.json({ request: updated, error: err.message }, { status: 502 });
   }

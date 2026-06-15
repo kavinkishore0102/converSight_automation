@@ -35,6 +35,8 @@ export type AutomationField = {
   required?: boolean;
   options?: string[]; // for select
   helpText?: string;
+  /** Key sent to the automation engine in `details`. Defaults to `id`. */
+  key?: string;
 };
 
 export type Automation = {
@@ -45,6 +47,11 @@ export type Automation = {
   icon?: string;
   enabled: boolean;
   fields: AutomationField[];
+  /** Category string expected by the IrtAutomationFlow engine. Leave empty for manual-only automations. */
+  backendCategory?: string;
+  /** When true, requests must be approved by an admin before the engine runs.
+   *  When false (default), the engine is invoked immediately on submission. */
+  requiresApproval?: boolean;
   createdAt: string;
   updatedAt: string;
 };
@@ -69,6 +76,8 @@ export type AutomationRequest = {
   data: Record<string, string | number | boolean>;
   status: RequestStatus;
   adminNote?: string;
+  /** Raw result returned by the automation engine, stored as JSON text. */
+  result?: string;
   createdAt: string;
   updatedAt: string;
 };
@@ -137,13 +146,22 @@ export function seedIfEmpty() {
         id: uid("aut"),
         name: "Activate Dataset",
         category: "Dataset",
-        description: "Activate a dataset for a tenant or workspace.",
+        description: "Activate a dataset schema for an organization.",
         icon: "Database",
         enabled: true,
+        backendCategory: "Activate Dataset",
         fields: [
-          { id: uid("f"), label: "Tenant ID", type: "text", required: true, placeholder: "e.g. acme" },
-          { id: uid("f"), label: "Dataset Name", type: "text", required: true, placeholder: "Sales_FY24" },
-          { id: uid("f"), label: "Activate Immediately", type: "checkbox" },
+          { id: "org_id", label: "Org ID", type: "text", required: true, placeholder: "e.g. acme01" },
+          { id: "dataset_id", label: "Dataset ID", type: "text", required: true, placeholder: "dataset_v1 _key" },
+          { id: "schema_to_activate", label: "Schema to activate", type: "text", required: true, placeholder: "schema name" },
+          {
+            id: "activate_mode",
+            label: "Activation mode",
+            type: "select",
+            required: true,
+            options: ["current", "in_progress", "backup"],
+            helpText: "current = activate_current_schema, in_progress = activate_in_progress_schema, backup = activate_backup_schema",
+          },
         ],
         createdAt: now,
         updatedAt: now,
@@ -152,12 +170,14 @@ export function seedIfEmpty() {
         id: uid("aut"),
         name: "Increase Session Timeout",
         category: "Session",
-        description: "Raise the session timeout for a tenant.",
+        description: "Raise the session timeout for a resource.",
         icon: "Clock",
         enabled: true,
+        backendCategory: "Increase Session Timeout",
         fields: [
-          { id: uid("f"), label: "Tenant ID", type: "text", required: true },
-          { id: uid("f"), label: "Timeout (minutes)", type: "number", required: true, placeholder: "60" },
+          { id: "org_id", label: "Org ID", type: "text", required: true },
+          { id: "resource_id", label: "Resource ID", type: "text", required: true },
+          { id: "time_in_minutes", label: "Timeout (minutes)", type: "number", required: true, placeholder: "60" },
         ],
         createdAt: now,
         updatedAt: now,
@@ -166,12 +186,14 @@ export function seedIfEmpty() {
         id: uid("aut"),
         name: "Remove SME Duplicates",
         category: "Dataset",
-        description: "Run SME duplicate removal job.",
+        description: "Remove duplicate SME metadata and/or synonym records for a dataset.",
         icon: "Trash2",
         enabled: true,
+        backendCategory: "Remove SME Duplicates",
         fields: [
-          { id: uid("f"), label: "Tenant ID", type: "text", required: true },
-          { id: uid("f"), label: "Dataset Name", type: "text", required: true },
+          { id: "dataset_id", label: "Dataset ID", type: "text", required: true },
+          { id: "remove_metadata_duplicate", label: "Remove metadata duplicates", type: "checkbox" },
+          { id: "remove_synonym_duplicate", label: "Remove synonym duplicates", type: "checkbox" },
         ],
         createdAt: now,
         updatedAt: now,
@@ -180,25 +202,66 @@ export function seedIfEmpty() {
         id: uid("aut"),
         name: "Remove Insight Duplicates",
         category: "Insights",
-        description: "Deduplicate generated insights for a tenant.",
+        description: "Deduplicate generated insights for an organization.",
         icon: "Sparkles",
         enabled: true,
         fields: [
-          { id: uid("f"), label: "Tenant ID", type: "text", required: true },
+          { id: "org_id", label: "Org ID", type: "text", required: true },
         ],
         createdAt: now,
         updatedAt: now,
       },
       {
         id: uid("aut"),
-        name: "Change Data Refresh Time",
+        name: "Update Refresh Time",
         category: "Scheduler",
-        description: "Reschedule the data refresh window.",
+        description: "Replace the data refresh schedule and timezone for an organization.",
         icon: "RefreshCw",
         enabled: true,
+        backendCategory: "Update Refresh Time",
         fields: [
-          { id: uid("f"), label: "Tenant ID", type: "text", required: true },
-          { id: uid("f"), label: "New Refresh Time (UTC)", type: "text", required: true, placeholder: "02:00" },
+          { id: "org_id", label: "Org ID", type: "text", required: true },
+          { id: "timezone", label: "Timezone", type: "text", required: true, placeholder: "e.g. AEST, IST, PST" },
+          {
+            id: "refresh_times",
+            label: "Refresh times",
+            type: "textarea",
+            required: true,
+            placeholder: "One per line, e.g. 2025-08-26T09:30",
+            helpText: "Local times in the timezone above. One per line or comma-separated.",
+          },
+        ],
+        createdAt: now,
+        updatedAt: now,
+      },
+      {
+        id: uid("aut"),
+        name: "Add Refresh Time",
+        category: "Scheduler",
+        description: "Add a new refresh time to an organization's data refresh schedule.",
+        icon: "Timer",
+        enabled: true,
+        backendCategory: "Add Refresh Time",
+        fields: [
+          { id: "org_id", label: "Org ID", type: "text", required: true },
+          { id: "refresh_time", label: "Refresh time", type: "text", required: true, placeholder: "2026-05-27T16:30:00 IST" },
+          { id: "schedule_name", label: "Schedule name", type: "text", placeholder: "Default Schedule" },
+        ],
+        createdAt: now,
+        updatedAt: now,
+      },
+      {
+        id: uid("aut"),
+        name: "Remove Refresh Time",
+        category: "Scheduler",
+        description: "Remove an existing refresh time from an organization's data refresh schedule.",
+        icon: "TimerOff",
+        enabled: true,
+        backendCategory: "Remove Refresh Time",
+        fields: [
+          { id: "org_id", label: "Org ID", type: "text", required: true },
+          { id: "refresh_time", label: "Refresh time", type: "text", required: true, placeholder: "2026-05-27T16:30:00 IST" },
+          { id: "schedule_name", label: "Schedule name", type: "text", placeholder: "Default Schedule" },
         ],
         createdAt: now,
         updatedAt: now,
@@ -211,8 +274,8 @@ export function seedIfEmpty() {
         icon: "ToggleRight",
         enabled: true,
         fields: [
-          { id: uid("f"), label: "Tenant ID", type: "text", required: true },
-          { id: uid("f"), label: "Enable", type: "checkbox" },
+          { id: "org_id", label: "Org ID", type: "text", required: true },
+          { id: "enable", label: "Enable", type: "checkbox" },
         ],
         createdAt: now,
         updatedAt: now,
@@ -225,21 +288,22 @@ export function seedIfEmpty() {
         icon: "Zap",
         enabled: true,
         fields: [
-          { id: uid("f"), label: "Tenant ID", type: "text", required: true },
+          { id: "org_id", label: "Org ID", type: "text", required: true },
         ],
         createdAt: now,
         updatedAt: now,
       },
       {
         id: uid("aut"),
-        name: "Update Refresh Time",
-        category: "Scheduler",
-        description: "Generic update to refresh time across datasets.",
-        icon: "Timer",
+        name: "Enable Athena Threads",
+        category: "Feature Flag",
+        description: "Enable Athena threads for a dataset and sync proactive insight templates.",
+        icon: "MessageSquare",
         enabled: true,
+        backendCategory: "Enable Athena Threads",
         fields: [
-          { id: uid("f"), label: "Tenant ID", type: "text", required: true },
-          { id: uid("f"), label: "New Time (UTC)", type: "text", required: true },
+          { id: "org_id", label: "Org ID", type: "text", required: true },
+          { id: "dataset_id", label: "Dataset ID", type: "text", required: true },
         ],
         createdAt: now,
         updatedAt: now,
@@ -248,12 +312,65 @@ export function seedIfEmpty() {
         id: uid("aut"),
         name: "Admin Email Changes",
         category: "Admin",
-        description: "Change the admin email contact for a tenant.",
+        description: "Change a user's email across user, auth, dataset and organization records.",
         icon: "Mail",
         enabled: true,
+        backendCategory: "Admin Email changes",
         fields: [
-          { id: uid("f"), label: "Tenant ID", type: "text", required: true },
-          { id: uid("f"), label: "New Admin Email", type: "email", required: true },
+          { id: "role", label: "Role", type: "select", required: true, options: ["user", "admin"] },
+          { id: "old_email", label: "Current email", type: "email", required: true },
+          { id: "new_email", label: "New email", type: "email", required: true },
+          { id: "user_id", label: "User ID", type: "text", helpText: "Required when role = admin" },
+          { id: "dataset_id", label: "Dataset ID", type: "text", helpText: "Required when role = admin" },
+          { id: "org_id", label: "Org ID", type: "text", helpText: "Required when role = admin" },
+        ],
+        createdAt: now,
+        updatedAt: now,
+      },
+      {
+        id: uid("aut"),
+        name: "Increase User Count",
+        category: "Admin",
+        description: "Increase the licensed user count for an organization.",
+        icon: "Users",
+        enabled: true,
+        backendCategory: "Increase User Count",
+        requiresApproval: true,
+        fields: [
+          { id: "org_id", label: "Org ID", type: "text", required: true },
+          { id: "user_count", label: "User count", type: "number", required: true },
+        ],
+        createdAt: now,
+        updatedAt: now,
+      },
+      {
+        id: uid("aut"),
+        name: "Extend Trail Period",
+        category: "Admin",
+        description: "Extend the trial expiry date for an organization.",
+        icon: "CalendarClock",
+        enabled: true,
+        backendCategory: "Extend Trial Period",
+        requiresApproval: true,
+        fields: [
+          { id: "org_id", label: "Org ID", type: "text", required: true },
+          { id: "extend_period", label: "New expiry date", type: "date", required: true },
+        ],
+        createdAt: now,
+        updatedAt: now,
+      },
+      {
+        id: uid("aut"),
+        name: "Change Data Fetch Limit",
+        category: "Admin",
+        description: "Adjust the maximum data fetch limit for an organization.",
+        icon: "Gauge",
+        enabled: true,
+        backendCategory: "Change Data Fetch Limit",
+        requiresApproval: true,
+        fields: [
+          { id: "org_id", label: "Org ID", type: "text", required: true },
+          { id: "fetch_limit", label: "New fetch limit", type: "number", required: true },
         ],
         createdAt: now,
         updatedAt: now,

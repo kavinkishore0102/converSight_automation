@@ -1,4 +1,4 @@
-import { listRequests } from "@/lib/db";
+import { listAutomations, listRequests } from "@/lib/db";
 import PageHeader from "@/components/page-header";
 import StatusBadge from "@/components/status-badge";
 import { timeAgo } from "@/lib/utils";
@@ -6,6 +6,10 @@ import RequestRow from "./request-row";
 
 export default function AdminRequests() {
   const requests = listRequests();
+  const automations = listAutomations();
+  const runnableAutomationIds = new Set(
+    automations.filter((a) => !!a.backendCategory).map((a) => a.id)
+  );
 
   return (
     <div className="p-8 max-w-7xl mx-auto">
@@ -33,7 +37,11 @@ export default function AdminRequests() {
             </thead>
             <tbody>
               {requests.map((r) => (
-                <RequestRow key={r.id} request={r} />
+                <RequestRow
+                  key={r.id}
+                  request={r}
+                  runnable={runnableAutomationIds.has(r.automationId)}
+                />
               ))}
             </tbody>
           </table>

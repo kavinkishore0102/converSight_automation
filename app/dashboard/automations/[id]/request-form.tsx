@@ -48,6 +48,9 @@ export default function RequestForm({ automation }: { automation: Automation }) 
   }
 
   if (done) {
+    const message = automation.requiresApproval
+      ? "is waiting for admin approval."
+      : "has been queued and the automation is running now.";
     return (
       <div className="text-center py-10">
         <div className="mx-auto h-14 w-14 rounded-full bg-brand-500/10 border border-brand-500/30 flex items-center justify-center mb-4">
@@ -55,7 +58,7 @@ export default function RequestForm({ automation }: { automation: Automation }) 
         </div>
         <h3 className="text-lg font-semibold">Request submitted</h3>
         <p className="text-sm text-slate-400 mt-1">
-          Your request <span className="text-slate-200 font-mono text-xs">{done}</span> is waiting for approval.
+          Your request <span className="text-slate-200 font-mono text-xs">{done}</span> {message}
         </p>
         <div className="mt-6 flex gap-3 justify-center">
           <button onClick={() => router.push("/dashboard/requests")} className="btn-primary">

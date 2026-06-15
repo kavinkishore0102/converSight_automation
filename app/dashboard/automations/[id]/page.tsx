@@ -28,6 +28,15 @@ export default function AutomationRequestPage({ params }: { params: { id: string
           <span className="text-xs text-slate-500">
             {automation.fields.length} input field{automation.fields.length === 1 ? "" : "s"}
           </span>
+          {automation.requiresApproval ? (
+            <span className="badge bg-amber-500/10 text-amber-300 border border-amber-500/30">
+              Admin approval required
+            </span>
+          ) : (
+            <span className="badge bg-emerald-500/10 text-emerald-300 border border-emerald-500/30">
+              Runs automatically
+            </span>
+          )}
         </div>
 
         <RequestForm automation={automation} />

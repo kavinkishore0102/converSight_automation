@@ -38,8 +38,19 @@ export default function UserAutomations() {
                   <ArrowRight className="h-4 w-4 text-slate-500 group-hover:text-brand-400 transition" />
                 </div>
                 <div className="mt-3 text-sm text-slate-400 line-clamp-2">{a.description}</div>
-                <div className="mt-3 text-xs text-slate-500">
-                  {a.fields.length} field{a.fields.length === 1 ? "" : "s"}
+                <div className="mt-3 flex items-center gap-2 text-xs">
+                  <span className="text-slate-500">
+                    {a.fields.length} field{a.fields.length === 1 ? "" : "s"}
+                  </span>
+                  {a.requiresApproval ? (
+                    <span className="badge bg-amber-500/10 text-amber-300 border border-amber-500/30">
+                      Approval
+                    </span>
+                  ) : (
+                    <span className="badge bg-emerald-500/10 text-emerald-300 border border-emerald-500/30">
+                      Auto-run
+                    </span>
+                  )}
                 </div>
               </Link>
             ))}
