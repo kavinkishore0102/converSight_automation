@@ -2,7 +2,7 @@
 
 import { useRouter } from "next/navigation";
 import { useState } from "react";
-import { ChevronDown, ChevronRight } from "lucide-react";
+import { ChevronDown, ChevronRight, Play, Loader2 } from "lucide-react";
 import { AutomationRequest, RequestStatus } from "@/lib/db";
 import { timeAgo } from "@/lib/utils";
 import StatusBadge from "@/components/status-badge";
@@ -15,12 +15,20 @@ const STATUSES: RequestStatus[] = [
   "Rejected",
 ];
 
-export default function RequestRow({ request }: { request: AutomationRequest }) {
+export default function RequestRow({
+  request,
+  runnable,
+}: {
+  request: AutomationRequest;
+  runnable: boolean;
+}) {
   const router = useRouter();
   const [open, setOpen] = useState(false);
   const [status, setStatus] = useState<RequestStatus>(request.status);
   const [note, setNote] = useState(request.adminNote ?? "");
   const [saving, setSaving] = useState(false);
+  const [running, setRunning] = useState(false);
+  const [runError, setRunError] = useState<string | null>(null);
 
   async function save() {
     setSaving(true);
@@ -31,6 +39,21 @@ export default function RequestRow({ request }: { request: AutomationRequest }) 
     });
     setSaving(false);
     router.refresh();
+  }
+
+  async function run() {
+    setRunning(true);
+    setRunError(null);
+    try {
+      const res = await fetch(`/api/requests/${request.id}/execute`, { method: "POST" });
+      const data = await res.json();
+      if (!res.ok) throw new Error(data.error || "Automation run failed");
+    } catch (err: any) {
+      setRunError(err.message);
+    } finally {
+      setRunning(false);
+      router.refresh();
+    }
   }
 
   return (
@@ -54,6 +77,17 @@ export default function RequestRow({ request }: { request: AutomationRequest }) 
         <td className="px-5 py-3 text-slate-400">{timeAgo(request.createdAt)}</td>
         <td className="px-5 py-3 text-right">
           <div className="inline-flex items-center gap-2">
+            {runnable && (
+              <button
+                onClick={run}
+                disabled={running}
+                className="btn-secondary py-1 px-3 text-xs"
+                title="Run this automation via the automation engine"
+              >
+                {running ? <Loader2 className="h-3.5 w-3.5 animate-spin" /> : <Play className="h-3.5 w-3.5" />}
+                Run
+              </button>
+            )}
             <select
               className="input h-8 py-1 text-xs w-44"
               value={status}
@@ -82,6 +116,19 @@ export default function RequestRow({ request }: { request: AutomationRequest }) 
                 <div className="rounded-md border border-slate-800 bg-slate-950/50 p-3 font-mono text-xs whitespace-pre-wrap">
                   {JSON.stringify(request.data, null, 2)}
                 </div>
+                {request.result && (
+                  <>
+                    <div className="text-xs uppercase tracking-wider text-slate-500 mt-3 mb-1">Engine result</div>
+                    <div className="rounded-md border border-slate-800 bg-slate-950/50 p-3 font-mono text-xs whitespace-pre-wrap">
+                      {request.result}
+                    </div>
+                  </>
+                )}
+                {runError && (
+                  <div className="mt-3 rounded-md border border-rose-500/30 bg-rose-500/10 px-3 py-2 text-xs text-rose-300">
+                    {runError}
+                  </div>
+                )}
                 <div className="text-xs uppercase tracking-wider text-slate-500 mt-3 mb-1">Admin note</div>
                 <textarea
                   className="input min-h-[80px] text-sm"

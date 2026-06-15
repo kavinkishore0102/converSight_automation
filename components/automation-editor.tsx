@@ -36,6 +36,8 @@ export default function AutomationEditor({ automation }: { automation?: Automati
   const [category, setCategory] = useState(automation?.category ?? CATEGORIES[0]);
   const [description, setDescription] = useState(automation?.description ?? "");
   const [enabled, setEnabled] = useState(automation?.enabled ?? true);
+  const [backendCategory, setBackendCategory] = useState(automation?.backendCategory ?? "");
+  const [requiresApproval, setRequiresApproval] = useState(automation?.requiresApproval ?? false);
   const [fields, setFields] = useState<AutomationField[]>(automation?.fields ?? []);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
@@ -76,7 +78,7 @@ export default function AutomationEditor({ automation }: { automation?: Automati
       const res = await fetch(url, {
         method,
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ name, category, description, enabled, fields }),
+        body: JSON.stringify({ name, category, description, enabled, fields, backendCategory, requiresApproval }),
       });
       const data = await res.json();
       if (!res.ok) throw new Error(data.error || "Failed to save");
@@ -129,6 +131,30 @@ export default function AutomationEditor({ automation }: { automation?: Automati
               value={description}
               onChange={(e) => setDescription(e.target.value)}
             />
+          </div>
+          <div>
+            <label className="label">Engine category</label>
+            <input
+              className="input"
+              placeholder="e.g. Activate Dataset (leave empty for manual-only)"
+              value={backendCategory}
+              onChange={(e) => setBackendCategory(e.target.value)}
+            />
+            <p className="mt-1 text-xs text-slate-500">
+              Must match the category handled by <code>IrtAutomationFlow.run()</code>.
+            </p>
+          </div>
+          <div>
+            <label className="label">Approval flow</label>
+            <label className="flex items-center gap-2 h-10 px-3 rounded-md border border-slate-700 bg-slate-900 text-sm">
+              <input
+                type="checkbox"
+                className="h-4 w-4 rounded border-slate-600 bg-slate-900 text-brand-500 focus:ring-brand-500"
+                checked={requiresApproval}
+                onChange={(e) => setRequiresApproval(e.target.checked)}
+              />
+              Require admin approval before running
+            </label>
           </div>
         </div>
       </div>

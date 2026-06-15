@@ -24,6 +24,8 @@ export async function POST(req: Request) {
     enabled: body.enabled ?? true,
     fields: Array.isArray(body.fields) ? body.fields : [],
     icon: body.icon,
+    backendCategory: body.backendCategory || undefined,
+    requiresApproval: !!body.requiresApproval,
   });
   return NextResponse.json({ automation });
 }
