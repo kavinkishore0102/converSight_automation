@@ -68,6 +68,25 @@ export async function POST(req: Request) {
         requestId: request.id,
         triggeredBy: session.email,
       });
+
+      // CRITICAL: a simulated result means the engine was NOT actually called.
+      // Surface this honestly instead of marking the request "Completed".
+      if ((result as any)?.simulated) {
+        const note =
+          "Engine is not configured (UE_BASE_URL / UE_STEP_FLOW_CRN / UE_BEARER_TOKEN missing). " +
+          "No real call was made — ArangoDB was NOT updated.";
+        const updated = updateRequest(request.id, {
+          status: "Waiting for Approval",
+          adminNote: note,
+          result: JSON.stringify(result, null, 2),
+        });
+        log.warn("request.auto_run.simulated", {
+          requestId: request.id,
+          reason: "engine_not_configured",
+        });
+        return NextResponse.json({ id: request.id, request: updated, result, warning: note });
+      }
+
       const updated = updateRequest(request.id, {
         status: "Completed",
         result: JSON.stringify(result, null, 2),

@@ -108,6 +108,12 @@ export async function executeAutomation(
   const baseUrl = process.env.UE_BASE_URL;
   const crn = process.env.UE_STEP_FLOW_CRN;
   const token = process.env.UE_BEARER_TOKEN;
+  // Path template — defaults to /execute/step_flow/{crn}; {crn} is substituted.
+  // If your engine uses a different path (e.g. /step_flow/{crn}/execute or
+  // /v2/api/invocations), set UE_EXECUTE_PATH in .env.local to override.
+  const pathTemplate = process.env.UE_EXECUTE_PATH || "/execute/step_flow/{crn}";
+  // Full URL override — if set, baseUrl + pathTemplate are ignored entirely.
+  const fullUrlOverride = process.env.UE_EXECUTE_URL;
 
   const base = {
     correlationId,
@@ -123,17 +129,36 @@ export async function executeAutomation(
       ...base,
       reason: "UE_BASE_URL / UE_STEP_FLOW_CRN / UE_BEARER_TOKEN not set — returning simulated result",
     });
+
+    console.log("\n╔══════════════════════════════════════════════════════════╗");
+    console.log("║  ⚠️  AUTOMATION ENGINE NOT CONFIGURED — SIMULATED MODE   ║");
+    console.log("║                                                          ║");
+    console.log("║  The request was NOT sent to the Universe Engine and     ║");
+    console.log("║  ArangoDB was NOT updated. Set these env vars in .env    ║");
+    console.log("║  to enable real execution:                               ║");
+    console.log("║    UE_BASE_URL                                           ║");
+    console.log("║    UE_STEP_FLOW_CRN                                      ║");
+    console.log("║    UE_BEARER_TOKEN                                       ║");
+    console.log("╚══════════════════════════════════════════════════════════╝");
+    console.log(`correlationId : ${correlationId}`);
+    console.log(`category      : ${category}`);
+    console.log(`details (would have been sent):`);
+    console.log(JSON.stringify(details, null, 2));
+    console.log("");
+
     return {
-      status: "success",
+      status: "simulated",
       simulated: true,
       correlationId,
-      message: "Automation engine is not configured — returning a simulated result.",
+      message:
+        "Automation engine is not configured (UE_BASE_URL/UE_STEP_FLOW_CRN/UE_BEARER_TOKEN missing). " +
+        "No real call was made. Set the env vars and restart to actually run the automation.",
       category,
       details,
     };
   }
 
-  const url = `${baseUrl}/execute/step_flow/${crn}`;
+  const url = fullUrlOverride || `${baseUrl}${pathTemplate.replace("{crn}", crn!)}`;
   const headers: Record<string, string> = {
     "Content-Type": "application/json",
     Authorization: token,
@@ -219,18 +244,37 @@ export async function executeAutomation(
   console.log("---------------------------------------------------------\n");
 
   if (!res.ok) {
-    const message =
+    let message =
       (json as any)?.error || (json as any)?.message || `Automation engine returned ${res.status}`;
+    if (res.status === 404) {
+      message =
+        `Engine returned 404 — the execute endpoint path is wrong. ` +
+        `Tried: ${url}. Override it by setting UE_EXECUTE_PATH (template, {crn} substituted) ` +
+        `or UE_EXECUTE_URL (full URL) in .env.local and restart the dev server.`;
+    } else if (res.status === 401 || res.status === 403) {
+      message = `Engine returned ${res.status} — UE_BEARER_TOKEN is missing/expired/unauthorized for CRN ${crn}.`;
+    }
     log.error("engine.failure", { ...base, httpStatus: res.status, message, body: json });
     throw new Error(message);
   }
 
+  const arangoTouched = extractArangoSignal(json);
   log.info("engine.success", {
     ...base,
     durationMs,
-    arangoTouched: extractArangoSignal(json),
+    arangoTouched,
     resultStatus: (json as any)?.status,
   });
+
+  console.log("\n----------- Automation Summary ----------------------");
+  console.log(`correlationId  : ${correlationId}`);
+  console.log(`requestId      : ${ctx.requestId}`);
+  console.log(`category       : ${category}`);
+  console.log(`engineStatus   : ${(json as any)?.status ?? "unknown"}`);
+  console.log(`arangoTouched  : ${arangoTouched}`);
+  console.log(`durationMs     : ${durationMs}`);
+  console.log(`triggeredBy    : ${ctx.triggeredBy}`);
+  console.log("---------------------------------------------------------\n");
 
   return { ...(json as object), correlationId } as EngineResult;
 }

@@ -39,6 +39,23 @@ export async function POST(_: Request, { params }: { params: { id: string } }) {
       requestId: request.id,
       triggeredBy: session.email,
     });
+
+    if ((result as any)?.simulated) {
+      const note =
+        "Engine is not configured (UE_BASE_URL / UE_STEP_FLOW_CRN / UE_BEARER_TOKEN missing). " +
+        "No real call was made — ArangoDB was NOT updated.";
+      const updated = updateRequest(params.id, {
+        status: "Waiting for Approval",
+        adminNote: note,
+        result: JSON.stringify(result, null, 2),
+      });
+      log.warn("execute.simulated", {
+        requestId: request.id,
+        reason: "engine_not_configured",
+      });
+      return NextResponse.json({ request: updated, result, warning: note }, { status: 200 });
+    }
+
     const updated = updateRequest(params.id, {
       status: "Completed",
       result: JSON.stringify(result, null, 2),
