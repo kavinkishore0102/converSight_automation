@@ -4,11 +4,11 @@
 
 @layer base {
   :root {
-    --background: 11 17 32;
-    --foreground: 226 232 240;
-    --muted: 30 41 59;
-    --border: 30 41 59;
-    --primary: 16 185 129;
+    --background: 23 27 24;
+    --foreground: 233 235 234;
+    --muted: 35 40 43;
+    --border: 35 40 43;
+    --primary: 0 218 73;
   }
 
   html,
@@ -21,49 +21,50 @@
   }
 
   body {
-    @apply bg-slate-950 text-slate-100 antialiased;
+    @apply bg-ink-900 text-ink-50 antialiased;
     background-image:
-      radial-gradient(circle at 0% 0%, rgba(16, 185, 129, 0.08), transparent 40%),
-      radial-gradient(circle at 100% 0%, rgba(59, 130, 246, 0.06), transparent 40%);
+      radial-gradient(circle at 0% 0%, rgba(0, 218, 73, 0.10), transparent 45%),
+      radial-gradient(circle at 100% 0%, rgba(0, 193, 250, 0.05), transparent 45%),
+      radial-gradient(circle at 50% 100%, rgba(126, 24, 255, 0.04), transparent 45%);
     background-attachment: fixed;
   }
 
   * {
-    @apply border-slate-800;
+    @apply border-ink-700;
   }
 }
 
 @layer components {
   .card {
-    @apply rounded-xl border border-slate-800 bg-slate-900/60 backdrop-blur-sm shadow-lg;
+    @apply rounded-xl border border-ink-700 bg-ink-800/70 backdrop-blur-sm shadow-lg;
   }
 
   .input {
-    @apply w-full rounded-md border border-slate-700 bg-slate-900 px-3 py-2 text-sm text-slate-100
-      placeholder:text-slate-500 focus:border-brand-500 focus:outline-none focus:ring-2 focus:ring-brand-500/30
+    @apply w-full rounded-md border border-ink-700 bg-ink-900/80 px-3 py-2 text-sm text-ink-50
+      placeholder:text-ink-400 focus:border-brand-400 focus:outline-none focus:ring-2 focus:ring-brand-400/30
       transition;
   }
 
   .label {
-    @apply block text-xs font-medium uppercase tracking-wide text-slate-400 mb-1.5;
+    @apply block text-xs font-medium uppercase tracking-wide text-ink-300 mb-1.5;
   }
 
   .btn {
     @apply inline-flex items-center justify-center gap-2 rounded-md px-4 py-2 text-sm font-medium
-      transition focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-offset-slate-950
+      transition focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-offset-ink-900
       disabled:opacity-50 disabled:cursor-not-allowed;
   }
 
   .btn-primary {
-    @apply btn bg-brand-500 text-white hover:bg-brand-600 focus:ring-brand-500/50 shadow-md shadow-brand-500/20;
+    @apply btn bg-brand-400 text-ink-900 hover:bg-brand-500 focus:ring-brand-400/50 shadow-md shadow-brand-400/20 font-semibold;
   }
 
   .btn-secondary {
-    @apply btn bg-slate-800 text-slate-100 hover:bg-slate-700 border border-slate-700 focus:ring-slate-600;
+    @apply btn bg-ink-800 text-ink-50 hover:bg-ink-700 border border-ink-700 focus:ring-ink-600;
   }
 
   .btn-ghost {
-    @apply btn bg-transparent text-slate-300 hover:bg-slate-800 hover:text-white;
+    @apply btn bg-transparent text-ink-200 hover:bg-ink-800 hover:text-ink-50;
   }
 
   .btn-danger {
@@ -74,32 +75,29 @@
     @apply inline-flex items-center gap-1 rounded-full px-2.5 py-0.5 text-xs font-medium;
   }
 
-  .badge-pending { @apply badge bg-amber-500/10 text-amber-300 border border-amber-500/20; }
-  .badge-approved { @apply badge bg-brand-500/10 text-brand-300 border border-brand-500/20; }
-  .badge-in-progress { @apply badge bg-sky-500/10 text-sky-300 border border-sky-500/20; }
-  .badge-completed { @apply badge bg-emerald-500/10 text-emerald-300 border border-emerald-500/20; }
-  .badge-rejected { @apply badge bg-rose-500/10 text-rose-300 border border-rose-500/20; }
+  .badge-pending     { @apply badge bg-accent-amber/10 text-accent-amber border border-accent-amber/30; }
+  .badge-approved    { @apply badge bg-brand-400/10 text-brand-300 border border-brand-400/30; }
+  .badge-in-progress { @apply badge bg-accent-blue/10 text-accent-blue border border-accent-blue/30; }
+  .badge-completed   { @apply badge bg-brand-400/10 text-brand-300 border border-brand-400/30; }
+  .badge-rejected    { @apply badge bg-rose-500/10 text-rose-300 border border-rose-500/30; }
 
   .nav-link {
-    @apply flex items-center gap-3 rounded-lg px-3 py-2 text-sm font-medium text-slate-400
-      hover:bg-slate-800/60 hover:text-slate-100 transition;
+    @apply flex items-center gap-3 rounded-lg px-3 py-2 text-sm font-medium text-ink-300
+      hover:bg-ink-800 hover:text-ink-50 transition;
   }
 
   .nav-link-active {
-    @apply bg-brand-500/10 text-brand-300 hover:bg-brand-500/15 hover:text-brand-200;
+    @apply bg-brand-400/10 text-brand-300 hover:bg-brand-400/15 hover:text-brand-200;
   }
 }
 
 /* Custom scrollbar */
 ::-webkit-scrollbar { width: 10px; height: 10px; }
 ::-webkit-scrollbar-track { background: transparent; }
-::-webkit-scrollbar-thumb { background: rgba(71, 85, 105, 0.5); border-radius: 8px; }
-::-webkit-scrollbar-thumb:hover { background: rgba(100, 116, 139, 0.7); }
+::-webkit-scrollbar-thumb { background: rgba(73, 78, 75, 0.6); border-radius: 8px; }
+::-webkit-scrollbar-thumb:hover { background: rgba(111, 118, 114, 0.8); }
 
-/* ============================================================================
-   Motion utilities — pure CSS, no extra deps. Use with `style={{ animationDelay }}`
-   to stagger lists.
-   ============================================================================ */
+/* Motion utilities */
 @keyframes fade-up {
   from { opacity: 0; transform: translateY(12px); }
   to   { opacity: 1; transform: translateY(0); }
@@ -117,17 +115,17 @@
   to   { opacity: 1; transform: translateY(0); }
 }
 @keyframes glow-pulse {
-  0%, 100% { box-shadow: 0 0 0 0 rgba(16, 185, 129, 0.4); }
-  50%      { box-shadow: 0 0 0 12px rgba(16, 185, 129, 0); }
+  0%, 100% { box-shadow: 0 0 0 0 rgba(0, 218, 73, 0.45); }
+  50%      { box-shadow: 0 0 0 12px rgba(0, 218, 73, 0); }
 }
 @keyframes shimmer {
   0%   { transform: translateX(-100%); }
   100% { transform: translateX(100%); }
 }
 
-.animate-fade-up { animation: fade-up 0.55s cubic-bezier(0.22, 1, 0.36, 1) both; }
-.animate-fade-in { animation: fade-in 0.5s ease-out both; }
-.animate-scale-in { animation: scale-in 0.35s cubic-bezier(0.22, 1, 0.36, 1) both; }
+.animate-fade-up    { animation: fade-up 0.55s cubic-bezier(0.22, 1, 0.36, 1) both; }
+.animate-fade-in    { animation: fade-in 0.5s ease-out both; }
+.animate-scale-in   { animation: scale-in 0.35s cubic-bezier(0.22, 1, 0.36, 1) both; }
 .animate-slide-down { animation: slide-down 0.35s cubic-bezier(0.22, 1, 0.36, 1) both; }
 .animate-glow-pulse { animation: glow-pulse 1.8s ease-out infinite; }
 
@@ -148,5 +146,5 @@
 }
 .smooth-card:hover {
   transform: translateY(-2px);
-  box-shadow: 0 12px 32px -12px rgba(16, 185, 129, 0.25);
+  box-shadow: 0 12px 32px -12px rgba(0, 218, 73, 0.30);
 }

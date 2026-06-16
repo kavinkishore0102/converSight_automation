@@ -63,13 +63,13 @@ export default function ProgressModal({
       aria-modal="true"
     >
       <div
-        className="absolute inset-0 bg-slate-950/70 backdrop-blur-sm"
+        className="absolute inset-0 bg-ink-950/70 backdrop-blur-sm"
         onClick={isTerminal ? onClose : undefined}
       />
       <div className="relative w-full max-w-md card p-6 animate-scale-in">
         <div className="flex items-start justify-between mb-1">
           <div>
-            <div className="text-xs uppercase tracking-widest text-slate-500">
+            <div className="text-xs uppercase tracking-widest text-ink-400">
               {state === "running" ? "Working on it" : state === "success" ? "All done" : state === "warning" ? "Action needed" : state === "error" ? "Something went wrong" : ""}
             </div>
             <h3 className="text-lg font-semibold mt-1">
@@ -83,7 +83,7 @@ export default function ProgressModal({
           {isTerminal && (
             <button
               onClick={onClose}
-              className="text-slate-500 hover:text-slate-200 transition"
+              className="text-ink-400 hover:text-ink-100 transition"
               aria-label="Close"
             >
               <X className="h-4 w-4" />
@@ -92,7 +92,7 @@ export default function ProgressModal({
         </div>
 
         {message && (
-          <p className="text-sm text-slate-400 mt-1 mb-4">{message}</p>
+          <p className="text-sm text-ink-300 mt-1 mb-4">{message}</p>
         )}
 
         <ol className="space-y-3 mt-5">
@@ -111,10 +111,10 @@ export default function ProgressModal({
                     failed
                       ? "bg-rose-500/15 border-rose-500/40 text-rose-300"
                       : done
-                      ? "bg-emerald-500/15 border-emerald-500/40 text-emerald-300"
+                      ? "bg-brand-400/15 border-brand-400/40 text-brand-300"
                       : active
-                      ? "bg-brand-500/15 border-brand-500/40 text-brand-300 animate-glow-pulse"
-                      : "bg-slate-800/60 border-slate-700 text-slate-500"
+                      ? "bg-brand-400/15 border-brand-400/40 text-brand-300 animate-glow-pulse"
+                      : "bg-ink-800/60 border-ink-700 text-ink-400"
                   }`}
                 >
                   {failed ? (
@@ -132,10 +132,10 @@ export default function ProgressModal({
                     failed
                       ? "text-rose-200"
                       : done
-                      ? "text-slate-200"
+                      ? "text-ink-100"
                       : active
-                      ? "text-slate-100 font-medium"
-                      : "text-slate-500"
+                      ? "text-ink-100 font-medium"
+                      : "text-ink-400"
                   }`}
                 >
                   {s.label}
@@ -147,11 +147,11 @@ export default function ProgressModal({
 
         {result && isTerminal && (
           <details className="mt-5 group">
-            <summary className="cursor-pointer text-xs text-slate-400 hover:text-slate-200 transition list-none flex items-center gap-1">
+            <summary className="cursor-pointer text-xs text-ink-300 hover:text-ink-100 transition list-none flex items-center gap-1">
               <span className="group-open:rotate-90 transition inline-block">▶</span>
               Engine response
             </summary>
-            <pre className="mt-2 rounded-md border border-slate-800 bg-slate-950/60 p-3 text-[11px] text-slate-300 max-h-48 overflow-auto font-mono whitespace-pre-wrap">
+            <pre className="mt-2 rounded-md border border-ink-800 bg-ink-950/60 p-3 text-[11px] text-ink-200 max-h-48 overflow-auto font-mono whitespace-pre-wrap">
               {result}
             </pre>
           </details>
