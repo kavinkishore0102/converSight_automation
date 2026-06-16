@@ -32,20 +32,20 @@ export default function AutomationsBrowser({ automations }: { automations: Autom
     <div className="max-w-6xl mx-auto px-6 py-12">
       {/* Hero */}
       <section className="text-center mb-12 animate-fade-up">
-        <div className="inline-flex items-center gap-2 rounded-full bg-brand-500/10 border border-brand-500/20 px-3 py-1 text-xs text-brand-300 mb-4">
+        <div className="inline-flex items-center gap-2 rounded-full bg-brand-500/10 border border-brand-500/20 px-3 py-1 text-xs text-brand-700 mb-4">
           <Sparkles className="h-3 w-3" />
           {automations.length} automations available
         </div>
-        <h1 className="text-4xl md:text-5xl font-semibold tracking-tight bg-gradient-to-br from-white via-ink-100 to-ink-300 bg-clip-text text-transparent">
+        <h1 className="text-4xl md:text-5xl font-semibold tracking-tight bg-gradient-to-br from-ink-900 via-ink-700 to-brand-600 bg-clip-text text-transparent">
           ConverSight Automations
         </h1>
-        <p className="text-ink-300 mt-4 max-w-xl mx-auto">
+        <p className="text-ink-400 mt-4 max-w-xl mx-auto">
           Trigger production-grade automations without leaving your browser. Fill the form, hit run, watch it happen.
         </p>
       </section>
 
       {/* Search + filters */}
-      <div className="sticky top-14 z-20 -mx-6 px-6 py-3 mb-8 bg-ink-950/70 backdrop-blur-md border-y border-ink-800/60 animate-fade-in">
+      <div className="sticky top-14 z-20 -mx-6 px-6 py-3 mb-8 bg-white/70 backdrop-blur-md border-y border-ink-100/60 animate-fade-in">
         <div className="flex flex-col md:flex-row md:items-center gap-3">
           <div className="relative flex-1">
             <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-ink-400" />
@@ -63,8 +63,8 @@ export default function AutomationsBrowser({ automations }: { automations: Autom
                 onClick={() => setActiveCat(c)}
                 className={`shrink-0 rounded-full px-3 py-1.5 text-xs font-medium transition ${
                   activeCat === c
-                    ? "bg-brand-500/20 text-brand-200 border border-brand-500/40"
-                    : "bg-ink-800/40 text-ink-300 border border-ink-700/50 hover:bg-ink-800 hover:text-ink-100"
+                    ? "bg-brand-500/20 text-brand-700 border border-brand-500/40"
+                    : "bg-white/40 text-ink-400 border border-ink-100/50 hover:bg-white hover:text-ink-900"
                 }`}
               >
                 {c}
@@ -77,7 +77,7 @@ export default function AutomationsBrowser({ automations }: { automations: Autom
       {/* Cards grid */}
       {filtered.length === 0 ? (
         <div className="text-center py-20 text-ink-400 animate-fade-in">
-          No automations match <span className="text-ink-200">&ldquo;{query}&rdquo;</span>.
+          No automations match <span className="text-ink-700">&ldquo;{query}&rdquo;</span>.
         </div>
       ) : (
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
@@ -91,15 +91,15 @@ export default function AutomationsBrowser({ automations }: { automations: Autom
               <div className="absolute inset-x-0 top-0 h-px bg-gradient-to-r from-transparent via-brand-500/40 to-transparent opacity-0 group-hover:opacity-100 transition-opacity" />
               <div className="flex items-start gap-3">
                 <div className="h-10 w-10 rounded-lg bg-brand-500/10 border border-brand-500/20 flex items-center justify-center group-hover:bg-brand-500/20 transition">
-                  <Workflow className="h-4 w-4 text-brand-300" />
+                  <Workflow className="h-4 w-4 text-brand-700" />
                 </div>
                 <div className="flex-1 min-w-0">
                   <div className="font-medium leading-tight truncate">{a.name}</div>
                   <div className="text-[11px] text-ink-400 mt-0.5">{a.category}</div>
                 </div>
-                <ArrowRight className="h-4 w-4 text-ink-500 group-hover:text-brand-300 group-hover:translate-x-0.5 transition" />
+                <ArrowRight className="h-4 w-4 text-ink-400 group-hover:text-brand-700 group-hover:translate-x-0.5 transition" />
               </div>
-              <div className="mt-3 text-sm text-ink-300 line-clamp-2 min-h-[40px]">
+              <div className="mt-3 text-sm text-ink-400 line-clamp-2 min-h-[40px]">
                 {a.description}
               </div>
               <div className="mt-4 flex items-center gap-2 text-[11px]">
@@ -107,11 +107,11 @@ export default function AutomationsBrowser({ automations }: { automations: Autom
                   {a.fields.length} field{a.fields.length === 1 ? "" : "s"}
                 </span>
                 {a.requiresApproval ? (
-                  <span className="badge bg-amber-500/10 text-amber-300 border border-amber-500/30">
+                  <span className="badge bg-accent-amber/15 text-accent-rust border border-accent-amber/40">
                     Approval
                   </span>
                 ) : (
-                  <span className="badge bg-emerald-500/10 text-emerald-300 border border-emerald-500/30">
+                  <span className="badge bg-brand-500/10 text-brand-700 border border-brand-500/25">
                     Auto-run
                   </span>
                 )}

@@ -150,8 +150,8 @@ export default function RequestForm({ automation }: { automation: Automation }) 
         </div>
 
         {automation.fields.length > 0 && (
-          <div className="space-y-4 rounded-lg border border-ink-800 bg-ink-900/40 p-4 animate-fade-up">
-            <div className="text-xs font-semibold uppercase tracking-wider text-ink-300">
+          <div className="space-y-4 rounded-lg border border-ink-100 bg-white/40 p-4 animate-fade-up">
+            <div className="text-xs font-semibold uppercase tracking-wider text-ink-400">
               Automation inputs
             </div>
             {automation.fields.map((f, i) => (
@@ -178,10 +178,10 @@ export default function RequestForm({ automation }: { automation: Automation }) 
                     {f.options?.map((o) => <option key={o}>{o}</option>)}
                   </select>
                 ) : f.type === "checkbox" ? (
-                  <label className="flex items-center gap-2 text-sm text-ink-200">
+                  <label className="flex items-center gap-2 text-sm text-ink-700">
                     <input
                       type="checkbox"
-                      className="h-4 w-4 rounded border-ink-500 bg-ink-900 text-brand-400 focus:ring-brand-400"
+                      className="h-4 w-4 rounded border-ink-200 bg-white text-brand-500 focus:ring-brand-500"
                       checked={!!values[f.id]}
                       onChange={(e) => setField(f.id, e.target.checked)}
                     />
@@ -221,7 +221,7 @@ export default function RequestForm({ automation }: { automation: Automation }) 
           </div>
         )}
 
-        <div className="flex justify-end gap-3 pt-2 border-t border-ink-800">
+        <div className="flex justify-end gap-3 pt-2 border-t border-ink-100">
           <button type="button" onClick={() => router.back()} className="btn-secondary">
             Cancel
           </button>
