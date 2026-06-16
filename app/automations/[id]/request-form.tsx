@@ -1,7 +1,7 @@
 "use client";
 
 import { useRouter } from "next/navigation";
-import { useRef, useState } from "react";
+import { useState } from "react";
 import { Loader2, Mail, Send } from "lucide-react";
 import { Automation } from "@/lib/db";
 import ProgressModal, { ProgressState } from "@/components/progress-modal";
@@ -20,19 +20,12 @@ export default function RequestForm({ automation }: { automation: Automation }) 
 
   // Progress modal state
   const [modalOpen, setModalOpen] = useState(false);
-  const [progressStep, setProgressStep] = useState(0);
   const [progressState, setProgressState] = useState<ProgressState>("idle");
   const [progressMessage, setProgressMessage] = useState<string | undefined>();
   const [progressResult, setProgressResult] = useState<string | undefined>();
-  const stepTimers = useRef<NodeJS.Timeout[]>([]);
 
   function setField(id: string, value: any) {
     setValues((v) => ({ ...v, [id]: value }));
-  }
-
-  function clearStepTimers() {
-    stepTimers.current.forEach(clearTimeout);
-    stepTimers.current = [];
   }
 
   function resetForm() {
@@ -48,16 +41,11 @@ export default function RequestForm({ automation }: { automation: Automation }) 
     setSubmitting(true);
     setError(null);
 
-    // Open modal and walk through visual progress while the request flies.
+    // Open the smooth loading modal.
     setProgressState("running");
-    setProgressStep(0);
-    setProgressMessage(`Sending ${automation.name} request…`);
+    setProgressMessage("Please wait...");
     setProgressResult(undefined);
     setModalOpen(true);
-
-    clearStepTimers();
-    stepTimers.current.push(setTimeout(() => setProgressStep((s) => Math.max(s, 1)), 450));
-    stepTimers.current.push(setTimeout(() => setProgressStep((s) => Math.max(s, 2)), 1100));
 
     try {
       const res = await fetch("/api/requests", {
@@ -73,19 +61,16 @@ export default function RequestForm({ automation }: { automation: Automation }) 
         }),
       });
       const data = await res.json();
-      clearStepTimers();
 
       if (!res.ok) {
-        setProgressStep((s) => Math.max(s, 2));
         setProgressState("error");
         setProgressMessage(data.error || "The automation engine rejected the request.");
         setProgressResult(JSON.stringify(data, null, 2));
         return;
       }
 
-      // Walk visually to "finished".
-      setProgressStep(3);
-      await new Promise((r) => setTimeout(r, 300));
+      // Brief settle delay so the spinner doesn't disappear too abruptly.
+      await new Promise((r) => setTimeout(r, 500));
 
       if (data.warning) {
         setProgressState("warning");
@@ -96,7 +81,6 @@ export default function RequestForm({ automation }: { automation: Automation }) 
       }
       setProgressResult(JSON.stringify(data.result ?? data, null, 2));
     } catch (err: any) {
-      clearStepTimers();
       setProgressState("error");
       setProgressMessage(err.message || "Network error");
     } finally {
@@ -235,18 +219,13 @@ export default function RequestForm({ automation }: { automation: Automation }) 
       <ProgressModal
         open={modalOpen}
         state={progressState}
-        current={progressStep}
         message={progressMessage}
         result={progressResult}
-        onClose={() => {
-          setModalOpen(false);
-          clearStepTimers();
-        }}
+        onClose={() => setModalOpen(false)}
         primaryAction={{
-          label: progressState === "success" ? "Run another" : "Back to form",
+          label: progressState === "success" ? "Browse automations" : "Back to form",
           onClick: () => {
             setModalOpen(false);
-            clearStepTimers();
             if (progressState === "success") {
               resetForm();
               router.push("/automations");
@@ -255,10 +234,7 @@ export default function RequestForm({ automation }: { automation: Automation }) 
         }}
         secondaryAction={{
           label: "Close",
-          onClick: () => {
-            setModalOpen(false);
-            clearStepTimers();
-          },
+          onClick: () => setModalOpen(false),
         }}
       />
     </>

@@ -2,8 +2,8 @@ import type { Metadata } from "next";
 import "./globals.css";
 
 export const metadata: Metadata = {
-  title: "ConverSight Automation",
-  description: "Run, request and manage ConverSight automations.",
+  title: "IRT Automations",
+  description: "Run, request and manage ConverSight IRT automations.",
 };
 
 export default function RootLayout({ children }: { children: React.ReactNode }) {
