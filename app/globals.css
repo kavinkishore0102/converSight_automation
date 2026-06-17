@@ -124,18 +124,12 @@
   0%   { transform: translateX(-100%); }
   100% { transform: translateX(100%); }
 }
-@keyframes loading-bar {
-  0%   { transform: translateX(-100%); }
-  50%  { transform: translateX(120%); }
-  100% { transform: translateX(-100%); }
-}
 
 .animate-fade-up    { animation: fade-up 0.5s cubic-bezier(0.22, 1, 0.36, 1) both; }
 .animate-fade-in    { animation: fade-in 0.4s ease-out both; }
 .animate-scale-in   { animation: scale-in 0.3s cubic-bezier(0.22, 1, 0.36, 1) both; }
 .animate-slide-down { animation: slide-down 0.3s cubic-bezier(0.22, 1, 0.36, 1) both; }
 .animate-glow-pulse { animation: glow-pulse 1.8s ease-out infinite; }
-.animate-loading-bar { animation: loading-bar 1.6s cubic-bezier(0.4, 0, 0.2, 1) infinite; }
 
 .shimmer {
   position: relative;

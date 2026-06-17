@@ -1,0 +1,15 @@
+services:
+  app:
+    build:
+      context: .
+      dockerfile: Dockerfile
+    ports:
+      - "3000:3000"
+    env_file:
+      # Repo-level secrets (take priority) — copy .env.example → .env.local and fill in values
+      - path: .env.local
+        required: false
+      # Server-wide fallback — place env vars at /etc/irt-automation.env on the host
+      - path: /etc/irt-automation.env
+        required: false
+    restart: unless-stopped

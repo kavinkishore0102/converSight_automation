@@ -108,10 +108,8 @@ export async function executeAutomation(
   const baseUrl = process.env.UE_BASE_URL;
   const crn = process.env.UE_STEP_FLOW_CRN;
   const token = process.env.UE_BEARER_TOKEN;
-  // Path template — defaults to /execute/step_flow/{crn}; {crn} is substituted.
-  // If your engine uses a different path (e.g. /step_flow/{crn}/execute or
-  // /v2/api/invocations), set UE_EXECUTE_PATH in .env.local to override.
-  const pathTemplate = process.env.UE_EXECUTE_PATH || "/execute/step_flow/{crn}";
+  // Real path: /resource/action/{crn}?action=irtautomation
+  const pathTemplate = process.env.UE_EXECUTE_PATH || "/resource/action/{crn}?action=irtautomation";
   // Full URL override — if set, baseUrl + pathTemplate are ignored entirely.
   const fullUrlOverride = process.env.UE_EXECUTE_URL;
 
@@ -166,7 +164,6 @@ export async function executeAutomation(
   };
   const payload = {
     config: {
-      source: "portal",
       category,
       details: JSON.stringify(details),
       slackID: "",
@@ -249,28 +246,38 @@ export async function executeAutomation(
     if (res.status === 404) {
       message =
         `Engine returned 404 — the execute endpoint path is wrong. ` +
-        `Tried: ${url}. Override it by setting UE_EXECUTE_PATH (template, {crn} substituted) ` +
-        `or UE_EXECUTE_URL (full URL) in .env.local and restart the dev server.`;
+        `Tried: ${url}. Override it by setting UE_EXECUTE_PATH or UE_EXECUTE_URL in .env.local.`;
     } else if (res.status === 401 || res.status === 403) {
-      message = `Engine returned ${res.status} — UE_BEARER_TOKEN is missing/expired/unauthorized for CRN ${crn}.`;
+      message = `Engine returned ${res.status} — UE_BEARER_TOKEN is missing/expired/unauthorized.`;
     }
     log.error("engine.failure", { ...base, httpStatus: res.status, message, body: json });
     throw new Error(message);
   }
 
+  // Engine always returns HTTP 200 — check data.status for actual success/failure
+  const dataStatus = (json as any)?.data?.status;
+  if (dataStatus === "failed") {
+    const errorDetail =
+      (json as any)?.data?.error?.error ||
+      (json as any)?.data?.error?.message ||
+      "Automation failed";
+    log.error("engine.data_failed", { ...base, durationMs, error: errorDetail, body: json });
+    console.log("\n----------- Automation FAILED ----------------------");
+    console.log(`correlationId : ${correlationId}`);
+    console.log(`category      : ${category}`);
+    console.log(`error         : ${errorDetail}`);
+    console.log("---------------------------------------------------------\n");
+    throw new Error(errorDetail);
+  }
+
   const arangoTouched = extractArangoSignal(json);
-  log.info("engine.success", {
-    ...base,
-    durationMs,
-    arangoTouched,
-    resultStatus: (json as any)?.status,
-  });
+  log.info("engine.success", { ...base, durationMs, arangoTouched, dataStatus });
 
   console.log("\n----------- Automation Summary ----------------------");
   console.log(`correlationId  : ${correlationId}`);
   console.log(`requestId      : ${ctx.requestId}`);
   console.log(`category       : ${category}`);
-  console.log(`engineStatus   : ${(json as any)?.status ?? "unknown"}`);
+  console.log(`dataStatus     : ${dataStatus ?? "unknown"}`);
   console.log(`arangoTouched  : ${arangoTouched}`);
   console.log(`durationMs     : ${durationMs}`);
   console.log(`triggeredBy    : ${ctx.triggeredBy}`);
